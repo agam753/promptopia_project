@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import PromptCard from "./PromptCard";
 
 // this component is going to used in this 'Feed' comp. only
@@ -18,12 +18,12 @@ const PromptCardList = ({ data, handleTagClick }) => {
   );
 };
 
-
 const Feed = () => {
   const [allPosts, setAllPosts] = useState([]);
 
   // Search states
   const [searchText, setSearchText] = useState("");
+  const [searchedResults, setSearchResults] = useState([]);
 
   useEffect(() => {
     const fetchPosts = async () => {
@@ -36,11 +36,33 @@ const Feed = () => {
     fetchPosts();
   }, [setAllPosts]);
 
+  // debouncing
+  useEffect(() => {
+    const debounceTimer = setTimeout(() => {
+      // filter posts
+      const regEx = new RegExp(searchText, "i");
+
+      const filteredPosts = allPosts.filter(
+        (post) =>
+          regEx.test(post.creator.username) ||
+          regEx.test(post.prompt) ||
+          regEx.test(post.tag)
+      );
+      setSearchResults(filteredPosts);
+    }, 500);
+
+    return () => {
+      clearTimeout(debounceTimer);
+    };
+  }, [searchText, setSearchResults]);
+
   const handleSearchChange = (e) => {
-    // clearTimeout(searchTimeout);
     setSearchText(e.target.value);
   };
 
+  const tagClickHandler = (tag) => {
+    setSearchText(tag);
+  };
   return (
     <section className="feed">
       <form className="relative w-full flex-center">
@@ -58,10 +80,10 @@ const Feed = () => {
       {searchText ? (
         <PromptCardList
           data={searchedResults}
-          handleTagClick={handleTagClick}
+          handleTagClick={tagClickHandler}
         />
       ) : (
-        <PromptCardList data={allPosts} handleTagClick={() => {}} />
+        <PromptCardList data={allPosts} handleTagClick={tagClickHandler} />
       )}
     </section>
   );
