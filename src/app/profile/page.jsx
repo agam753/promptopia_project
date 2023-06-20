@@ -11,6 +11,9 @@ const MyProfile = () => {
   const [posts, setPosts] = useState([]);
 
   const id = session?.user.id;
+  let name = 'My';
+  if(session)
+    name = `${session?.user.name.at(0)}${session?.user.name.split(' ').at(0).substring(1).toLowerCase()}'s`;
 
   useEffect(() => {
     const fetchPosts = async () => {
@@ -51,7 +54,7 @@ const MyProfile = () => {
 
   return (
     <Profile
-      name="My"
+      name={name}
       desc="Welcome to your personalized profile page"
       data={posts}
       handleDelete={handleDelete}
